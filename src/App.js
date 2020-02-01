@@ -5,6 +5,7 @@ import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
+import Grid from "@material-ui/core/Grid";
 import Web3 from "web3";
 import { STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS } from "./quoteContract";
 
@@ -13,28 +14,12 @@ const web3 = new Web3("http://127.0.0.1:8545");
 function App() {
   return (
     <div className="App">
-      {/* <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-        Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-        className="App-link"
-        href="https://reactjs.org"
-        target="_blank"
-        rel="noopener noreferrer"
-        >
-        Learn React
-        </a>
-      </header> */}
       <div className="AppContent">
         <StockMarket></StockMarket>
       </div>
     </div>
   );
 }
-
-// OCMFO00UOHHPZTYN
 
 let accounts = [];
 // getAccounts();
@@ -44,6 +29,7 @@ function StockMarket() {
   const [quote, setQuote] = React.useState({});
   const [stockPrice, setStockPrice] = React.useState();
   const [stockVolume, setStockVolume] = React.useState();
+  // const [errorMessage, setErrorMessage] = React.useState("");
 
   React.useEffect(() => {
     if (Boolean(quote) && Object.keys(quote).length !== 0) {
@@ -57,11 +43,10 @@ function StockMarket() {
           STOCK_ORACLE_ADDRESS
         );
 
-        // console.log(web3.utils.fromAscii(symbol));
         var setStock = await stockQuote.methods
           .setStock(
             web3.utils.fromAscii(symbol),
-            Number(quote["05. price"]) * 10000,
+            Math.round(Number(quote["05. price"]) * 10000),
             Number(quote["06. volume"]) * 10000
           )
           .send({ from: accounts[0] });
@@ -78,7 +63,7 @@ function StockMarket() {
         setStockVolume(volume);
       }
     }
-  }, [quote]);
+  }, [quote, symbol]);
   // console.log(stockPrice);
 
   const onClickGetPrice = () => {
@@ -88,15 +73,14 @@ function StockMarket() {
         "&apikey=KEYW"
     )
       .then((res, err) => {
-        console.log("sdfsefwe");
         return res.json();
       })
       .then(data => {
-        console.log("coming..!!");
         setQuote(data["Global Quote"]);
+        // setErrorMessage(data["Error Message"]);
+        console.log(data["Error Message"]);
       })
       .catch(err => {
-        console.log("cdjsefbwke");
         console.log(err);
         setStockPrice(0);
         setStockVolume(0);
@@ -108,11 +92,15 @@ function StockMarket() {
       <Typography>Stock Market Exercise</Typography>
 
       <Box m={3} />
-      <TextField
-        variant="outlined"
-        label="Symbol"
-        onChange={event => setSymbol(event.target.value)}
-      ></TextField>
+      <Grid container direction="row" justify="center" alignItems="center">
+        <Typography>Enter the stock symbol</Typography>
+        <Box m={1}></Box>
+        <TextField
+          variant="outlined"
+          label="Symbol"
+          onChange={event => setSymbol(event.target.value)}
+        ></TextField>
+      </Grid>
 
       <Box m={3} />
       <Button
@@ -124,19 +112,13 @@ function StockMarket() {
         Get Stock Quote
       </Button>
       <Box m={3}></Box>
-      {/* {Boolean(stockPrice) ? (
+      {Boolean(quote) && Object.keys(quote).length !== 0 ? (
         <div>
           <Typography>{`Price: ${stockPrice / 10000}`}</Typography>
           <Typography>{`Volume: ${stockVolume / 10000}`}</Typography>
         </div>
       ) : (
         ""
-      )} */}
-      {stockPrice !==  0 && stockVolume !== 0 && (
-        <div>
-        <Typography>{`Price: ${stockPrice / 10000}`}</Typography>
-        <Typography>{`Volume: ${stockVolume / 10000}`}</Typography>
-      </div>
       )}
     </div>
   );
